@@ -1,3 +1,4 @@
+const _=require('lodash');
 const express=require('express');
 const bodyParser=require('body-parser');
 const {ObjectID}=require('mongodb');
@@ -55,19 +56,49 @@ app.delete('/todos/:id',(req,res)=>{
   if(!ObjectID.isValid(id)){
     return res.status(404).send();
   }
-//remove todo by id
-  Todo.findByIdAndRemove(id).then((todo)=>{
-//success
-//if no document send 404
+  //remove todo by id
+    Todo.findByIdAndRemove(id).then((todo)=>{
+      //success
+      //if no document send 404
+      if(!todo){
+        return res.status(404).send();
+      }
+      //if doc, dend doc back with 200
+      res.send({todo});
+    }).catch((e)=>{
+      //error
+      res.status(400).send();
+    });
+  });
+
+//update todo
+app.patch('/todos/:id',(req,res)=>{
+  var id=req.params.id;
+  //pick(object,[array of properties we wanna to pull off if exist in object])
+  //pick is to avoid to update any properties that we wouldn't (ex. completedAt)
+  var body=_.pick(req.body,['text','completed']);
+  //validate the id -> not valid? send 404
+  if(!ObjectID.isValid(id)){
+    return res.status(404).send();
+  }
+  if(_.isBoolean(body.completed) && body.completed){
+    body.completedAt=new Date().getTime();
+  }
+  else {
+    body.completed=false;
+    body.completedAt=null;
+  }
+  Todo.findByIdAndUpdate(id,{$set:body},{new:true})
+  .then((todo)=>{
     if(!todo){
       return res.status(404).send();
     }
-    //if doc, dend doc back with 200
     res.send({todo});
-  },(e)=>{
+  })
+  .catch((e)=>{
     //error
     res.status(400).send();
-  })
+  });
 });
 
 app.listen(port,()=>{
