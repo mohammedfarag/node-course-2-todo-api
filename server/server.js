@@ -4,6 +4,7 @@ const bodyParser=require('body-parser');
 const {ObjectID}=require('mongodb');
 
 var {mongoose}=require('./db/mongoose')
+var {authenticate}=require('./middleware/authenticate');
 var {Todo}=require('./models/todo')
 var {User}=require('./models/user')
 
@@ -114,6 +115,7 @@ app.post('/users',(req,res)=>{
   });
 });
 
+// get users
 app.get('/users',(req,res)=>{
   User.find().sort({_id:-1}).then((user)=>{
       res.send({user});
@@ -121,6 +123,12 @@ app.get('/users',(req,res)=>{
     res.status(400).send(e);
   })
 });
+
+//example for private rout.
+app.get('/users/me',authenticate,(req,res)=>{
+  res.send(req.user);
+})
+
 app.listen(port,()=>{
   console.log(`Started on port ${port}`);
 });
