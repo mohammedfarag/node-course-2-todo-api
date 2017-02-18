@@ -116,7 +116,7 @@ app.post('/users',(req,res)=>{
 });
 
 // get users
-app.get('/users',(req,res)=>{
+app.get('/users',authenticate,(req,res)=>{
   User.find().sort({_id:-1}).then((user)=>{
       res.send({user});
   },(e)=>{
